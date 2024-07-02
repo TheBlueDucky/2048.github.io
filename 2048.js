@@ -2,10 +2,11 @@ var board;
 var score = 0;
 var rows = 4;
 var columns = 4;
+var startTouchX, startTouchY, endTouchX, endTouchY;
 
-window.onload = function() {
+window.onload = function () {
     setGame();
-    addEventListeners();
+    setupSwipeControls();
 }
 
 function setGame() {
@@ -37,104 +38,71 @@ function updateTile(tile, num) {
     if (num > 0) {
         tile.innerText = num.toString();
         if (num <= 4096) {
-            tile.classList.add("x"+num.toString());
+            tile.classList.add("x" + num.toString());
         } else {
             tile.classList.add("x8192");
-        }                
+        }
     }
 }
 
-function addEventListeners() {
-    // Keyboard events
-    document.addEventListener('keydown', function(event) {
-        switch(event.code) {
-            case "ArrowLeft":
-                slideLeft();
-                setTwo();
-                break;
-            case "ArrowRight":
-                slideRight();
-                setTwo();
-                break;
-            case "ArrowUp":
-                slideUp();
-                setTwo();
-                break;
-            case "ArrowDown":
-                slideDown();
-                setTwo();
-                break;
-        }
-        document.getElementById("score").innerText = score;
-    });
+function setupSwipeControls() {
+    var boardContainer = document.getElementById("board");
+    boardContainer.addEventListener("touchstart", handleTouchStart, false);
+    boardContainer.addEventListener("touchmove", handleTouchMove, false);
+    boardContainer.addEventListener("touchend", handleTouchEnd, false);
+}
 
-    // Touch events for swipe gestures
-    var touchstartX = 0;
-    var touchstartY = 0;
-    var touchendX = 0;
-    var touchendY = 0;
+function handleTouchStart(event) {
+    startTouchX = event.touches[0].clientX;
+    startTouchY = event.touches[0].clientY;
+}
 
-    var gestureZone = document.getElementById('board');
+function handleTouchMove(event) {
+    event.preventDefault();
+    endTouchX = event.touches[0].clientX;
+    endTouchY = event.touches[0].clientY;
+}
 
-    gestureZone.addEventListener('touchstart', function(event) {
-        touchstartX = event.changedTouches[0].screenX;
-        touchstartY = event.changedTouches[0].screenY;
-    }, false);
+function handleTouchEnd(event) {
+    var deltaX = endTouchX - startTouchX;
+    var deltaY = endTouchY - startTouchY;
 
-    gestureZone.addEventListener('touchend', function(event) {
-        touchendX = event.changedTouches[0].screenX;
-        touchendY = event.changedTouches[0].screenY;
-        handleGesture();
-    }, false);
-
-    function handleGesture() {
-        var deltaX = touchendX - touchstartX;
-        var deltaY = touchendY - touchstartY;
-
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
-            // horizontal swipe
-            if (deltaX > 0) {
-                // swipe right
-                slideRight();
-                setTwo();
-            } else {
-                // swipe left
-                slideLeft();
-                setTwo();
-            }
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 0) {
+            slideRight();
         } else {
-            // vertical swipe
-            if (deltaY > 0) {
-                // swipe down
-                slideDown();
-                setTwo();
-            } else {
-                // swipe up
-                slideUp();
-                setTwo();
-            }
+            slideLeft();
         }
-        document.getElementById("score").innerText = score;
+    } else {
+        if (deltaY > 0) {
+            slideDown();
+        } else {
+            slideUp();
+        }
     }
+
+    setTwo();
+    document.getElementById("score").innerText = score;
 }
 
-function filterZero(row){
+function filterZero(row) {
     return row.filter(num => num != 0); //create new array of all nums != 0
 }
 
 function slide(row) {
-    row = filterZero(row);
-    for (let i = 0; i < row.length - 1; i++){
+    row = filterZero(row); //[2, 2, 2]
+    for (let i = 0; i < row.length - 1; i++) {
         if (row[i] == row[i + 1]) {
             row[i] *= 2;
             row[i + 1] = 0;
             score += row[i];
         }
-    }
-    row = filterZero(row);
+    } //[4, 0, 2]
+    row = filterZero(row); //[4, 2]
+    //add zeroes
     while (row.length < columns) {
         row.push(0);
-    }
+    } //[4, 2, 0, 0]
     return row;
 }
 
@@ -143,7 +111,7 @@ function slideLeft() {
         let row = board[r];
         row = slide(row);
         board[r] = row;
-        for (let c = 0; c < columns; c++){
+        for (let c = 0; c < columns; c++) {
             let tile = document.getElementById(r.toString() + "-" + c.toString());
             let num = board[r][c];
             updateTile(tile, num);
@@ -157,7 +125,7 @@ function slideRight() {
         row.reverse();
         row = slide(row);
         board[r] = row.reverse();
-        for (let c = 0; c < columns; c++){
+        for (let c = 0; c < columns; c++) {
             let tile = document.getElementById(r.toString() + "-" + c.toString());
             let num = board[r][c];
             updateTile(tile, num);
@@ -169,7 +137,7 @@ function slideUp() {
     for (let c = 0; c < columns; c++) {
         let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
         row = slide(row);
-        for (let r = 0; r < rows; r++){
+        for (let r = 0; r < rows; r++) {
             board[r][c] = row[r];
             let tile = document.getElementById(r.toString() + "-" + c.toString());
             let num = board[r][c];
@@ -184,7 +152,7 @@ function slideDown() {
         row.reverse();
         row = slide(row);
         row.reverse();
-        for (let r = 0; r < rows; r++){
+        for (let r = 0; r < rows; r++) {
             board[r][c] = row[r];
             let tile = document.getElementById(r.toString() + "-" + c.toString());
             let num = board[r][c];
