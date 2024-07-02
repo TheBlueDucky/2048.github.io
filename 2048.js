@@ -5,22 +5,16 @@ var columns = 4;
 
 window.onload = function() {
     setGame();
+    addEventListeners();
 }
 
 function setGame() {
-    // board = [
-    //     [2, 2, 2, 2],
-    //     [2, 2, 2, 2],
-    //     [4, 4, 8, 8],
-    //     [4, 4, 8, 8]
-    // ];
-
     board = [
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [0, 0, 0, 0],
         [0, 0, 0, 0]
-    ]
+    ];
 
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < columns; c++) {
@@ -34,7 +28,6 @@ function setGame() {
     //create 2 to begin the game
     setTwo();
     setTwo();
-
 }
 
 function updateTile(tile, num) {
@@ -51,46 +44,97 @@ function updateTile(tile, num) {
     }
 }
 
-document.addEventListener('keyup', (e) => {
-    if (e.code == "ArrowLeft") {
-        slideLeft();
-        setTwo();
-    }
-    else if (e.code == "ArrowRight") {
-        slideRight();
-        setTwo();
-    }
-    else if (e.code == "ArrowUp") {
-        slideUp();
-        setTwo();
+function addEventListeners() {
+    // Keyboard events
+    document.addEventListener('keydown', function(event) {
+        switch(event.code) {
+            case "ArrowLeft":
+                slideLeft();
+                setTwo();
+                break;
+            case "ArrowRight":
+                slideRight();
+                setTwo();
+                break;
+            case "ArrowUp":
+                slideUp();
+                setTwo();
+                break;
+            case "ArrowDown":
+                slideDown();
+                setTwo();
+                break;
+        }
+        document.getElementById("score").innerText = score;
+    });
 
+    // Touch events for swipe gestures
+    var touchstartX = 0;
+    var touchstartY = 0;
+    var touchendX = 0;
+    var touchendY = 0;
+
+    var gestureZone = document.getElementById('board');
+
+    gestureZone.addEventListener('touchstart', function(event) {
+        touchstartX = event.changedTouches[0].screenX;
+        touchstartY = event.changedTouches[0].screenY;
+    }, false);
+
+    gestureZone.addEventListener('touchend', function(event) {
+        touchendX = event.changedTouches[0].screenX;
+        touchendY = event.changedTouches[0].screenY;
+        handleGesture();
+    }, false);
+
+    function handleGesture() {
+        var deltaX = touchendX - touchstartX;
+        var deltaY = touchendY - touchstartY;
+
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // horizontal swipe
+            if (deltaX > 0) {
+                // swipe right
+                slideRight();
+                setTwo();
+            } else {
+                // swipe left
+                slideLeft();
+                setTwo();
+            }
+        } else {
+            // vertical swipe
+            if (deltaY > 0) {
+                // swipe down
+                slideDown();
+                setTwo();
+            } else {
+                // swipe up
+                slideUp();
+                setTwo();
+            }
+        }
+        document.getElementById("score").innerText = score;
     }
-    else if (e.code == "ArrowDown") {
-        slideDown();
-        setTwo();
-    }
-    document.getElementById("score").innerText = score;
-})
+}
 
 function filterZero(row){
     return row.filter(num => num != 0); //create new array of all nums != 0
 }
 
 function slide(row) {
-    //[0, 2, 2, 2] 
-    row = filterZero(row); //[2, 2, 2]
-    for (let i = 0; i < row.length-1; i++){
-        if (row[i] == row[i+1]) {
+    row = filterZero(row);
+    for (let i = 0; i < row.length - 1; i++){
+        if (row[i] == row[i + 1]) {
             row[i] *= 2;
-            row[i+1] = 0;
+            row[i + 1] = 0;
             score += row[i];
         }
-    } //[4, 0, 2]
-    row = filterZero(row); //[4, 2]
-    //add zeroes
+    }
+    row = filterZero(row);
     while (row.length < columns) {
         row.push(0);
-    } //[4, 2, 0, 0]
+    }
     return row;
 }
 
@@ -109,10 +153,10 @@ function slideLeft() {
 
 function slideRight() {
     for (let r = 0; r < rows; r++) {
-        let row = board[r];         //[0, 2, 2, 2]
-        row.reverse();              //[2, 2, 2, 0]
-        row = slide(row)            //[4, 2, 0, 0]
-        board[r] = row.reverse();   //[0, 0, 2, 4];
+        let row = board[r];
+        row.reverse();
+        row = slide(row);
+        board[r] = row.reverse();
         for (let c = 0; c < columns; c++){
             let tile = document.getElementById(r.toString() + "-" + c.toString());
             let num = board[r][c];
@@ -125,10 +169,6 @@ function slideUp() {
     for (let c = 0; c < columns; c++) {
         let row = [board[0][c], board[1][c], board[2][c], board[3][c]];
         row = slide(row);
-        // board[0][c] = row[0];
-        // board[1][c] = row[1];
-        // board[2][c] = row[2];
-        // board[3][c] = row[3];
         for (let r = 0; r < rows; r++){
             board[r][c] = row[r];
             let tile = document.getElementById(r.toString() + "-" + c.toString());
@@ -144,10 +184,6 @@ function slideDown() {
         row.reverse();
         row = slide(row);
         row.reverse();
-        // board[0][c] = row[0];
-        // board[1][c] = row[1];
-        // board[2][c] = row[2];
-        // board[3][c] = row[3];
         for (let r = 0; r < rows; r++){
             board[r][c] = row[r];
             let tile = document.getElementById(r.toString() + "-" + c.toString());
@@ -163,7 +199,6 @@ function setTwo() {
     }
     let found = false;
     while (!found) {
-        //find random row and column to place a 2 in
         let r = Math.floor(Math.random() * rows);
         let c = Math.floor(Math.random() * columns);
         if (board[r][c] == 0) {
@@ -177,10 +212,9 @@ function setTwo() {
 }
 
 function hasEmptyTile() {
-    let count = 0;
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < columns; c++) {
-            if (board[r][c] == 0) { //at least one zero in the board
+            if (board[r][c] == 0) {
                 return true;
             }
         }
