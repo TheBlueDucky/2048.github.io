@@ -47,7 +47,7 @@ function updateTile(tile, num) {
 
 function setupControls() {
     var boardContainer = document.getElementById("board");
-    
+
     // Swipe controls for touch devices
     boardContainer.addEventListener("touchstart", handleTouchStart, false);
     boardContainer.addEventListener("touchmove", handleTouchMove, false);
@@ -55,19 +55,27 @@ function setupControls() {
 
     // Keyboard controls for computer
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'a') {
-            slideLeft();
-            setTwo();
-        } else if (e.key === 'ArrowRight' || e.key === 'd') {
-            slideRight();
-            setTwo();
-        } else if (e.key === 'ArrowUp' || e.key === 'w') {
-            slideUp();
-            setTwo();
-        } else if (e.key === 'ArrowDown' || e.key === 's') {
-            slideDown();
-            setTwo();
+        switch (e.key) {
+            case 'ArrowLeft':
+            case 'a':
+                slideLeft();
+                break;
+            case 'ArrowRight':
+            case 'd':
+                slideRight();
+                break;
+            case 'ArrowUp':
+            case 'w':
+                slideUp();
+                break;
+            case 'ArrowDown':
+            case 's':
+                slideDown();
+                break;
+            default:
+                break;
         }
+        setTwo();
         document.getElementById("score").innerText = score;
     });
 }
